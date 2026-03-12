@@ -32,13 +32,24 @@ except:
 
 play_button = pygame.Rect(100, 260, 200, 80)
 
+try:
+    pygame.mixer.music.load("assets/musique_fond.mp3")
+    pygame.mixer.music.set_volume(1.0)
+    pygame.mixer.music.play(-1)  # -1 pour jouer en boucle infinie
+except Exception as e:
+    print(f"Musique non trouvée : {e}")
+    
 running = True
+
+
 while running:
     # --- AFFICHAGE ---
     if bg_menu:
         screen.blit(bg_menu, (0, 0))
     else:
         screen.fill((30, 30, 30))
+
+
 
     # --- TEXTE EN HAUT À GAUCHE ---
     version_text = font_small.render("v0.0.4 - Early Access", True, (200, 200, 200))
@@ -59,6 +70,8 @@ while running:
     text_surf = font.render("PLAY", True, (255, 255, 255))
     text_rect = text_surf.get_rect(center=play_button.center)
     screen.blit(text_surf, text_rect)
+
+
 
     # --- EVENEMENTS ---
     for event in pygame.event.get():

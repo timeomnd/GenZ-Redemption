@@ -8,7 +8,7 @@ class Speed(pygame.sprite.Sprite):
         # 1. Chargement de la Sprite Sheet unique
         # Vérifie bien le chemin : "assets/speed_sprite_sheet_by_popgamer06_dg13zzz.jpg"
         try:
-            sprite_sheet = pygame.image.load("../assets/speed/speed_12.png").convert_alpha()
+            sprite_sheet = pygame.image.load("assets/speed/speed_12.png").convert_alpha()
         except:
             # Sécurité si l'image n'est pas trouvée
             sprite_sheet = pygame.Surface((1000, 500))
