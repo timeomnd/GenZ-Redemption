@@ -86,14 +86,8 @@ def main():
         # Condition de défaite (Game Over)
         if player.rect.top > SCREEN_HEIGHT:
             print(f"Game Over! Score final: {SCORE}")
-            
-            # On écrit le score
-            with open("last_score.txt", "w") as f:
-                f.write(str(SCORE))
-            # SCORE = 0 
-            
-            running = False
             game_over = True
+            running = False
 
         # Dessin
         if bg:
@@ -109,6 +103,32 @@ def main():
 
         pygame.display.flip()
 
+
+    try:
+        # Sauvegarder le score actuel
+        with open("src/last_score.txt", "w") as f_last:
+            f_last.write(str(SCORE))
+
+        # Lire le meilleur score précédent
+        try:
+            with open("src/best_score.txt", "r") as f_best:
+                contenu = f_best.read().strip()
+                # Si le fichier est vide, on part de 0
+                if (contenu):
+                    meilleur_score = int(contenu) 
+                else:
+                    meilleur_score = 0
+        except FileNotFoundError:
+            meilleur_score = 0
+
+        # Comparer et mettre à jour si nécessaire
+        if SCORE > meilleur_score:
+            with open("src/best_score.txt", "w") as f_best:
+                f_best.write(str(SCORE))
+
+    except Exception as error:
+        print(f"Erreur lors de la sauvegarde : {error}")
+    
     # Si on a perdu, on retourne simplement à l'appelant (le menu)
     if game_over:
         return
