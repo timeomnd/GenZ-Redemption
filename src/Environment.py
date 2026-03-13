@@ -1,7 +1,10 @@
 import pygame
 import sys
 import random
+import os
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
 # --- CONFIGURATION DU JEU ---
 SCREEN_WIDTH = 400  # Format vertical type Doodle Jump
 SCREEN_HEIGHT = 600
@@ -25,7 +28,7 @@ class Platform(pygame.sprite.Sprite):
 def background() :
     # Chargement du fond
         try:
-            background = pygame.image.load('assets/fond_tik_tok.jpg').convert()
+            background = pygame.image.load(os.path.join(ASSETS_PATH,'fond_tik_tok.jpg')).convert()
             background = pygame.transform.scale(background, (SCREEN_WIDTH, SCREEN_HEIGHT))
             return background
         except:

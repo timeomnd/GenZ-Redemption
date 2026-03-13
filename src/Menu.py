@@ -1,7 +1,10 @@
 import pygame
 import main 
-
+import os
 # Configuration
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
+SCORE_PATH = os.path.join(BASE_DIR, "Score")
 WIDTH, HEIGHT = 400, 600
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -20,12 +23,12 @@ def read_score(filename):
     except (FileNotFoundError, ValueError):
         return 0
 
-last_score = read_score("src/last_score.txt")
-best_score = read_score("src/best_score.txt")
+last_score = read_score(os.path.join(SCORE_PATH, "last_score.txt"))
+best_score = read_score(os.path.join(SCORE_PATH, "best_score.txt"))
 
 # 1. Chargement du fond
 try:
-    bg_menu = pygame.image.load('assets/fond.png').convert()
+    bg_menu = pygame.image.load(os.path.join(ASSETS_PATH, "fond.png")).convert()
     bg_menu = pygame.transform.scale(bg_menu, (WIDTH, HEIGHT))
 except:
     bg_menu = None 
@@ -33,7 +36,7 @@ except:
 play_button = pygame.Rect(100, 260, 200, 80)
 
 try:
-    pygame.mixer.music.load("assets/musique_fond.mp3")
+    pygame.mixer.music.load(os.path.join(ASSETS_PATH, "musique_fond.mp3"))
     pygame.mixer.music.set_volume(1.0)
     pygame.mixer.music.play(-1)  # -1 pour jouer en boucle infinie
 except Exception as e:
@@ -83,8 +86,8 @@ while running:
                 if play_button.collidepoint(event.pos):
                     main.main()
                     # On recharge les scores après une partie
-                    last_score = read_score("src/last_score.txt")
-                    best_score = read_score("src/best_score.txt")
+                    last_score = read_score(os.path.join(SCORE_PATH, "last_score.txt"))
+                    best_score = read_score(os.path.join(SCORE_PATH, "best_score.txt"))
 
     pygame.display.flip()
 
