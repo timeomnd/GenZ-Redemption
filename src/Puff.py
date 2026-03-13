@@ -1,4 +1,8 @@
 import pygame
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
 
 class Puff(pygame.sprite.Sprite):
     def __init__(self, x, y, sprite_path, speed, damage, cols, rows, scalex, scaley):
@@ -57,16 +61,16 @@ class Puff(pygame.sprite.Sprite):
 #blue Puff
 class PuffRaspberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x,y,"../assets/ice_sparkles.png",-12, 10, 5, 1, 90, 90)
+        super().__init__(x,y,os.path.join(ASSETS_PATH, "ice_sparkles.png"),-12, 10, 5, 1, 90, 90)
 class PuffStrawberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x,y,"../assets/fireball.png", -12, 10, 2, 2, 90, 90)
+        super().__init__(x,y,os.path.join(ASSETS_PATH, "fireball.png"), -12, 10, 2, 2, 90, 90)
 class PuffBlackberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x,y,"../assets/explosion.png",-12,10,6,1, 90, 90)
+        super().__init__(x,y,os.path.join(ASSETS_PATH, "explosion.png"),-12,10,6,1, 90, 90)
 class PuffBanana(Puff):
     def __init__(self, x, y):
-        super().__init__(x,y,"../assets/smoke.png",-12,10,7,1, 125, 150)
+        super().__init__(x,y,os.path.join(ASSETS_PATH, "smoke.png"),-12,10,7,1, 125, 150)
 
 #red Puff
 #black puff
