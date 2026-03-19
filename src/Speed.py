@@ -2,6 +2,7 @@ import pygame
 import Puff as p
 import random
 import os
+import inventory
 SCREEN_WIDTH = 400  # Format vertical type Doodle Jump
 SCREEN_HEIGHT = 600
 PLAYER_COLOR = (0, 128, 255)
@@ -26,6 +27,7 @@ class Speed(pygame.sprite.Sprite):
             sprite_sheet = pygame.Surface((1000, 500))
             sprite_sheet.fill((0, 0, 255))
 
+        self.inventory = inventory.Inventory()
         self.frames = []
 
         # 2. Découpage (Logique subsurface)
@@ -69,17 +71,24 @@ class Speed(pygame.sprite.Sprite):
             self.rect.x += 7
 
     def shoot(self):
-        rand = random.randint(0,3)
-        if rand == 0:
+        current_weapon = self.inventory.get_current_weapon()
+        if not current_weapon :
+            return
+
+        puff = None
+        # On tire la Puff qui correspond à l'arme équipée
+        if current_weapon == "yellow":
             puff = p.PuffBanana(self.rect.centerx, self.rect.top)
-        if rand == 1:
-            puff = p.PuffRaspberry(self.rect.centerx, self.rect.bottom)
-        if rand == 2:
-            puff = p.PuffBlackberry(self.rect.centerx, self.rect.bottom)
-        if rand == 3:
-            puff = p.PuffStrawberry(self.rect.centerx, self.rect.bottom)
-        self.all_sprites.add(puff)
-        self.bullets_group.add(puff)
+        elif current_weapon == "blue":
+            puff = p.PuffRaspberry(self.rect.centerx, self.rect.top)
+        elif current_weapon == "black":
+            puff = p.PuffBlackberry(self.rect.centerx, self.rect.top)
+        elif current_weapon == "red":
+            puff = p.PuffStrawberry(self.rect.centerx, self.rect.top)
+
+        if puff:
+            self.all_sprites.add(puff)
+            self.bullets_group.add(puff)
 
     def update(self):
         self.handle_keys()
