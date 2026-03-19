@@ -1,6 +1,5 @@
 import pygame
-import main 
-import os
+import main
 import sys
 
 # --- CONFIGURATION ---
@@ -35,9 +34,6 @@ last_score = read_score("../src/Score/last_score.txt")
 best_score = read_score("../src/Score/best_score.txt")
 
 # Fond d'écran
-bg_menu = None
-
-
 bg_menu = pygame.image.load("../assets/fond.png").convert()
 bg_menu = pygame.transform.scale(bg_menu, (WIDTH, HEIGHT))
 
@@ -46,14 +42,12 @@ bg_menu = pygame.transform.scale(bg_menu, (WIDTH, HEIGHT))
 play_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 40, 200, 80)
 
 # Musique
-music_path = os.path.join("../assets/sound/musique_fond.mp3")
-if os.path.exists(music_path):
-    try:
-        pygame.mixer.music.load(music_path)
-        pygame.mixer.music.set_volume(0.5)
-        pygame.mixer.music.play(-1)
-    except:
-        pass
+try:
+    pygame.mixer.music.load("../assets/sound/musique_fond.mp3")
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
+except:
+    pass
 
 # --- BOUCLE PRINCIPALE ---
 running = True
@@ -97,8 +91,8 @@ while running:
                 main.main()
                 
                 # Au retour du jeu, on relance la musique et on actualise les scores
-                if os.path.exists(music_path):
-                    pygame.mixer.music.play(-1)
+
+                pygame.mixer.music.play(-1)
                 last_score = read_score("../src/Score/last_score.txt")
                 best_score = read_score("../src/Score/best_score.txt")
 

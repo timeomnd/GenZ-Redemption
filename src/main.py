@@ -11,10 +11,10 @@ SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 600
 
 
+
 def main():
     global SCORE
-    SCORE = 0  
-    
+    SCORE = 0
     pygame.init()
 
     pygame.mixer.music.load("../assets/sound/musique_saut.mp3")
@@ -48,7 +48,8 @@ def main():
     all_sprites.add(player)
 
     running = True
-    game_over = False 
+    game_over = False
+    hit = False
     total_scroll = 0 
     
     while running:
@@ -81,7 +82,7 @@ def main():
                     platforms.add(new_p)
 
         # Défaite
-        if player.rect.top > SCREEN_HEIGHT:
+        if player.rect.top > SCREEN_HEIGHT or hit == True:
             print(f"Game Over! Score final: {SCORE}")
             game_over = True
             running = False
