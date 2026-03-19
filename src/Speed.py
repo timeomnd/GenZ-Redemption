@@ -6,19 +6,20 @@ SCREEN_WIDTH = 400  # Format vertical type Doodle Jump
 SCREEN_HEIGHT = 600
 PLAYER_COLOR = (0, 128, 255)
 GRAVITY = 0.5
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SPEED_PATH = os.path.join(BASE_DIR, "..", "assets", "speed")
 
 class Speed(pygame.sprite.Sprite):
     def __init__(self, platforms, all_sprites, bullets_group):
         super().__init__()
 
-        # 1. Chargement de la Sprite Sheet unique
-        # Vérifie bien le chemin : "assets/speed_sprite_sheet_by_popgamer06_dg13zzz.jpg"
         try:
-            full_path = os.path.join(SPEED_PATH, "Speed_12.png")
-            print(f"Recherche de l'image ici : {full_path}")
-            sprite_sheet = pygame.image.load(os.path.join(full_path)).convert_alpha()
+            self.jump_sound = pygame.mixer.Sound("../assets/sound/musique_saut.mp3")
+            self.jump_sound.set_volume(0.4) # Volume à 40%
+        except Exception as e:
+            print(f"Impossible de charger le son du saut : {e}")
+            self.jump_sound = None
+        # 1. Chargement de la Sprite Sheet unique
+        try:
+            sprite_sheet = pygame.image.load("../assets/speed/Speed.png").convert_alpha()
         except Exception as e:
             # Sécurité si l'image n'est pas trouvée
             print(f"Erreur lors de l'affichage du sprite : {e}")
@@ -47,13 +48,11 @@ class Speed(pygame.sprite.Sprite):
 
         # 3. Initialisation de l'image
         self.frame_index = 0.0
-        self.animation_speed = 0.1
+        self.animation_speed = 0.09
         self.image = self.frames[0]
         self.rect = self.image.get_rect(center=(200, 500))
 
         # Variables de jeu
-        self.image = pygame.Surface((40, 40))
-        self.image.fill(PLAYER_COLOR)
         self.rect = self.image.get_rect()
         # Position de départ au-dessus du sol
         self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
@@ -84,6 +83,12 @@ class Speed(pygame.sprite.Sprite):
 
     def update(self):
         self.handle_keys()
+
+        self.frame_index += self.animation_speed
+        if self.frame_index >= len(self.frames):
+            self.frame_index = 0
+        self.image = self.frames[int(self.frame_index)]
+
         self.vel_y += GRAVITY
         self.rect.y += self.vel_y
 
@@ -96,6 +101,9 @@ class Speed(pygame.sprite.Sprite):
                 if self.rect.bottom < lowest.rect.bottom + 10:
                     self.rect.bottom = lowest.rect.top
                     self.vel_y = -15  # Rebond automatique
+
+                    if self.jump_sound:
+                        self.jump_sound.play()
 
         # Wrap-around (téléportation gauche/droite)
         if self.rect.left > SCREEN_WIDTH: self.rect.right = 0

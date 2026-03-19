@@ -3,55 +3,57 @@ import sys
 import random
 import Environment as e
 import Speed as s
-SCREEN_WIDTH = 400  # Format vertical type Doodle Jump
-SCREEN_HEIGHT = 600
-FPS = 60
 
-# Couleurs
+FPS = 60
 PLATFORM_COLOR = (34, 177, 76)
 
-SCORE = 0
+SCREEN_WIDTH = 400  
+SCREEN_HEIGHT = 600
+
 
 def main():
-    global SCORE  # Réinitialisation du score à chaque partie
+    global SCORE
+    SCORE = 0  
+    
     pygame.init()
+
+    pygame.mixer.music.load("../assets/sound/musique_saut.mp3")
+    pygame.mixer.music.set_volume(0.5)
+
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Doodle Shoot Platformer")
     clock = pygame.time.Clock()
 
-    # Police pour l'affichage du score
     font = pygame.font.SysFont("Arial", 24, bold=True)
-
     bg = e.background()
 
-    # Groupes de sprites
     all_sprites = pygame.sprite.Group()
     platforms = pygame.sprite.Group()
     bullets_group = pygame.sprite.Group()
 
-    # 1. Création du SOL de départ (largeur totale pour ne pas tomber)
+    # 1. SOL de départ
     start_ground = e.Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40)
     all_sprites.add(start_ground)
     platforms.add(start_ground)
 
-    # 2. Création des plateformes initiales au-dessus
-    for i in range(5):
-        p = e.Platform(random.randint(0, SCREEN_WIDTH - 60), i * 120, 60, 15)
+    # 2. Plateformes initiales adaptées à la hauteur
+    # On calcule l'espacement pour que le jeu reste jouable peu importe SCREEN_HEIGHT
+    spacing = SCREEN_HEIGHT // 5
+    for i in range(6):
+        p = e.Platform(random.randint(0, SCREEN_WIDTH - 60), i * spacing, 60, 15)
         all_sprites.add(p)
         platforms.add(p)
 
-    # 3. Création du joueur
     player = s.Speed(platforms, all_sprites, bullets_group)
     all_sprites.add(player)
 
-    # Variables de jeu
     running = True
-    game_over = False  # True si on perd, False si on ferme la fenêtre
-    total_scroll = 0   # Hauteur totale parcourue vers le haut
+    game_over = False 
+    total_scroll = 0 
+    
     while running:
         clock.tick(FPS)
 
-        # Événements
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -59,31 +61,26 @@ def main():
                 if event.key == pygame.K_SPACE:
                     player.shoot()
 
-        # Mise à jour
         all_sprites.update()
-
-        # LOGIQUE DE SCROLLING (Caméra qui monte)
+        # LOGIQUE DE SCROLLING
         if player.rect.top <= SCREEN_HEIGHT / 3:
-            # On descend tout le monde selon la vitesse du joueur
             scroll_dist = abs(player.vel_y)
             total_scroll += scroll_dist
-
-            # Le score dépend de la hauteur totale parcourue et ne peut que monter
             if int(total_scroll) > SCORE:
                 SCORE = int(total_scroll)
 
             player.rect.y += scroll_dist
             for plat in platforms:
                 plat.rect.y += scroll_dist
-                # Recyclage des plateformes qui sortent par le bas
                 if plat.rect.top >= SCREEN_HEIGHT:
                     plat.kill()
+                    # On fait réapparaître en haut
                     new_p = e.Platform(random.randint(0, SCREEN_WIDTH - 60),
-                                     random.randint(-50, 0), 60, 15)
+                                     random.randint(-spacing, 0), 60, 15)
                     all_sprites.add(new_p)
                     platforms.add(new_p)
 
-        # Condition de défaite (Game Over)
+        # Défaite
         if player.rect.top > SCREEN_HEIGHT:
             print(f"Game Over! Score final: {SCORE}")
             game_over = True
@@ -96,44 +93,34 @@ def main():
             screen.fill((135, 206, 235))
 
         all_sprites.draw(screen)
-
-        # Affichage du score en haut à gauche
         score_surf = font.render(f"Score : {SCORE}", True, (255, 255, 255))
         screen.blit(score_surf, (10, 10))
-
         pygame.display.flip()
 
-
+    # --- SAUVEGARDE (Tes chemins d'origine) ---
     try:
-        # Sauvegarder le score actuel
-        with open("src/last_score.txt", "w") as f_last:
+        with open("../src/Score/last_score.txt", "w") as f_last:
             f_last.write(str(SCORE))
 
-        # Lire le meilleur score précédent
+        meilleur_score = 0
         try:
-            with open("src/best_score.txt", "r") as f_best:
+            with open("../src/Score/best_score.txt", "r") as f_best:
                 contenu = f_best.read().strip()
-                # Si le fichier est vide, on part de 0
-                if (contenu):
-                    meilleur_score = int(contenu) 
-                else:
-                    meilleur_score = 0
+                if contenu:
+                    meilleur_score = int(contenu)
         except FileNotFoundError:
             meilleur_score = 0
 
-        # Comparer et mettre à jour si nécessaire
         if SCORE > meilleur_score:
-            with open("src/best_score.txt", "w") as f_best:
+            with open("../src/Score/best_score.txt", "w") as f_best:
                 f_best.write(str(SCORE))
 
     except Exception as error:
         print(f"Erreur lors de la sauvegarde : {error}")
     
-    # Si on a perdu, on retourne simplement à l'appelant (le menu)
     if game_over:
-        return
+        return 
 
-    # Si on a quitté via la croix, on ferme vraiment le jeu
     pygame.quit()
     sys.exit()
 
