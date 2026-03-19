@@ -1,60 +1,69 @@
 import pygame
 import main 
 import os
-# Configuration
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
-SCORE_PATH = os.path.join(BASE_DIR, "Score")
-WIDTH, HEIGHT = 400, 600
+import sys
+
+# --- CONFIGURATION ---
 pygame.init()
+
+# 1. Résolution dynamique pour le menu
+monitor_info = pygame.display.Info()
+WIDTH = 400
+HEIGHT = 600
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Gen Z Redemption - Menu")
 
 # Polices
 font = pygame.font.SysFont("agencyfb", 50, bold=True)
-font_small = pygame.font.SysFont("agencyfb", 20, bold=True)  # Police plus petite pour le coin
+font_small = pygame.font.SysFont("agencyfb", 20, bold=True)
 
-# Lecture des scores depuis les fichiers texte
+# --- FONCTIONS ---
 def read_score(filename):
     try:
+
         with open(filename, "r") as f:
             value = f.read().strip()
-            return int(value)
+            return int(value) if value else 0
     except (FileNotFoundError, ValueError):
-        return 0
+        pass
+    return 0
 
-last_score = read_score(os.path.join(SCORE_PATH, "last_score.txt"))
-best_score = read_score(os.path.join(SCORE_PATH, "best_score.txt"))
+# --- CHARGEMENT DES RESSOURCES ---
 
-# 1. Chargement du fond
-try:
-    bg_menu = pygame.image.load(os.path.join(ASSETS_PATH, "fond.png")).convert()
-    bg_menu = pygame.transform.scale(bg_menu, (WIDTH, HEIGHT))
-except:
-    bg_menu = None 
+last_score = read_score("../src/Score/last_score.txt")
+best_score = read_score("../src/Score/best_score.txt")
 
-play_button = pygame.Rect(100, 260, 200, 80)
+# Fond d'écran
+bg_menu = None
 
-try:
-    pygame.mixer.music.load(os.path.join(ASSETS_PATH, "musique_fond.mp3"))
-    pygame.mixer.music.set_volume(1.0)
-    pygame.mixer.music.play(-1)  # -1 pour jouer en boucle infinie
-except Exception as e:
-    print(f"Musique non trouvée : {e}")
-    
+
+bg_menu = pygame.image.load("../assets/fond.png").convert()
+bg_menu = pygame.transform.scale(bg_menu, (WIDTH, HEIGHT))
+
+
+# Bouton Play centré dynamiquement
+play_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 40, 200, 80)
+
+# Musique
+music_path = os.path.join("../assets/sound/musique_fond.mp3")
+if os.path.exists(music_path):
+    try:
+        pygame.mixer.music.load(music_path)
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
+    except:
+        pass
+
+# --- BOUCLE PRINCIPALE ---
 running = True
-
-
 while running:
-    # --- AFFICHAGE ---
     if bg_menu:
         screen.blit(bg_menu, (0, 0))
     else:
         screen.fill((30, 30, 30))
 
-
-
-    # --- TEXTE EN HAUT À GAUCHE ---
+    # --- TEXTES ---
     version_text = font_small.render("v0.0.4 - Early Access", True, (200, 200, 200))
     screen.blit(version_text, (15, 15))
 
@@ -74,21 +83,26 @@ while running:
     text_rect = text_surf.get_rect(center=play_button.center)
     screen.blit(text_surf, text_rect)
 
-
-
     # --- EVENEMENTS ---
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
             
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1: 
-                if play_button.collidepoint(event.pos):
-                    main.main()
-                    # On recharge les scores après une partie
-                    last_score = read_score(os.path.join(SCORE_PATH, "last_score.txt"))
-                    best_score = read_score(os.path.join(SCORE_PATH, "best_score.txt"))
+            if event.button == 1 and play_button.collidepoint(event.pos):
+                # On coupe la musique du menu avant de lancer le jeu
+                pygame.mixer.music.stop()
+                
+                # Lancement du jeu (SCORE sera mis à 0 dans main.main)
+                main.main()
+                
+                # Au retour du jeu, on relance la musique et on actualise les scores
+                if os.path.exists(music_path):
+                    pygame.mixer.music.play(-1)
+                last_score = read_score("../src/Score/last_score.txt")
+                best_score = read_score("../src/Score/best_score.txt")
 
     pygame.display.flip()
 
 pygame.quit()
+sys.exit()
