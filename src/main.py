@@ -25,7 +25,10 @@ def main():
     # Police pour l'affichage du score
     font = pygame.font.SysFont("Arial", 24, bold=True)
     bg = e.background()
-
+    if bg :
+        bg_y = SCREEN_HEIGHT - bg.get_height()
+    else :
+        bg_y = 0
     all_sprites = pygame.sprite.Group()
     platforms = pygame.sprite.Group()
     bullets_group = pygame.sprite.Group()
@@ -81,6 +84,9 @@ def main():
 
             player.rect.y += scroll_dist
 
+            if bg :
+                bg_y += scroll_dist * 0.1
+
 #logique pour supprimer les items et plateformes si ils sortent de l'écran et pour les faire descendre en même temps que l'écran
             for item in items_group:
                 item.rect.y += scroll_dist
@@ -92,8 +98,14 @@ def main():
                 if plat.rect.top >= SCREEN_HEIGHT:
                     plat.kill()
                     # On fait réapparaître en haut
+                    highest_plat_y = min([p.rect.y for p in platforms])
+
+                    MIN_GAP = 60
+                    MAX_GAP = 130
+
+                    new_y = highest_plat_y - random.randint(MIN_GAP, MAX_GAP)
                     new_p = e.Platform(random.randint(0, SCREEN_WIDTH - 60),
-                                     random.randint(-spacing, 0), 60, 15)
+                                     new_y, 60, 15)
                     all_sprites.add(new_p)
                     platforms.add(new_p)
 
@@ -121,7 +133,8 @@ def main():
             running = False
         # --- DESSIN (Une seule fois par frame !) ---
         if bg:
-            screen.blit(bg, (0, 0))
+            screen.fill((135, 206, 235))
+            screen.blit(bg, (0, bg_y))
         else:
             screen.fill((135, 206, 235))
 
