@@ -15,6 +15,14 @@ class Inventory:
             "black": "puffBlack.png",
             "yellow": "puffYellow.png"
         }
+
+        try:
+
+            self.collect_sound = pygame.mixer.Sound("../assets/sound/item_collect_sound_effect.mp3")
+            self.collect_sound.set_volume(0.4)
+        except:
+            self.collect_sound = None
+
         for weapon_name, filename in icon_files.items():
             try:
                 path = os.path.join(ASSETS_PATH, filename)
@@ -34,6 +42,8 @@ class Inventory:
             if self.current_index == -1:
                 self.current_index = 0
             print(f"[{weapon_type}] ajouté ! Inventaire : {self.weapons}")
+            if self.collect_sound:
+                self.collect_sound.play()
 
     def cycle_weapon(self):
         if not self.weapons:
