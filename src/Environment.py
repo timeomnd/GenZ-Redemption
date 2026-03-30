@@ -23,7 +23,7 @@ class Platform(pygame.sprite.Sprite):
 def background() :
     # Chargement du fond
         try:
-            bg_image = pygame.image.load(os.path.join(ASSETS_PATH, 'gratte-ciel.png')).convert_alpha()
+            bg_image = pygame.image.load("../assets/gratte-ciel.png").convert_alpha()
 
             original_width, original_height = bg_image.get_size()
 

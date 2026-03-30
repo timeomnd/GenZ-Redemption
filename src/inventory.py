@@ -1,8 +1,5 @@
 import pygame
-import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
 class Inventory:
     def __init__(self):
         self.weapons = []
@@ -25,7 +22,7 @@ class Inventory:
 
         for weapon_name, filename in icon_files.items():
             try:
-                path = os.path.join(ASSETS_PATH, filename)
+                path = ("../assets/" + filename)
                 img = pygame.image.load(path).convert_alpha()
                 img = pygame.transform.scale(img, (30, 30))
                 self.icons[weapon_name] = img
