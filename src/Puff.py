@@ -1,9 +1,4 @@
 import pygame
-import os
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
-
 
 class Puff(pygame.sprite.Sprite):
     def __init__(self, x, y, sprite_path, damage, cols, rows, scalex, scaley,
@@ -64,14 +59,14 @@ class Puff(pygame.sprite.Sprite):
 #blue Puff
 class PuffRaspberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "snowball.png"),damage=10, cols=3, rows=2, scalex=90, scaley=90, friction=0.98, rotation=-90)
+        super().__init__(x, y, "../assets/snowball.png",damage=10, cols=3, rows=2, scalex=90, scaley=90, friction=0.98, rotation=-90)
 class PuffStrawberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "fireball.png"),damage=15, cols=2, rows=2, scalex=90, scaley=90,friction=1.0, rotation=-90, is_tick_damage=False)
+        super().__init__(x, y, "../assets/fireball.png",damage=15, cols=2, rows=2, scalex=90, scaley=90,friction=1.0, rotation=-90, is_tick_damage=False)
 class PuffBlackberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "explosion.png"),damage=20, cols=6, rows=1, scalex=90, scaley=90,is_tick_damage=False)
+        super().__init__(x, y, "../assets/explosion.png",damage=20, cols=6, rows=1, scalex=90, scaley=90,is_tick_damage=False)
 class PuffBanana(Puff):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "smoke.png"),damage=10, cols=7, rows=1, scalex=125, scaley=150)
+        super().__init__(x, y, "../assets/smoke.png",damage=10, cols=7, rows=1, scalex=125, scaley=150)
 
