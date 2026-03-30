@@ -1,4 +1,6 @@
 # created by virtualenv automatically
 .venv
 .idea
-src/__pycache__
+*.pyc
+src/Score/best_score.txt
+src/Score/last_score.txt
