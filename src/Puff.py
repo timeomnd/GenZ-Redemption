@@ -75,6 +75,3 @@ class PuffBanana(Puff):
     def __init__(self, x, y):
         super().__init__(x, y, os.path.join(ASSETS_PATH, "smoke.png"),damage=10, cols=7, rows=1, scalex=125, scaley=150)
 
-#red Puff
-#black puff
-#yellow puff

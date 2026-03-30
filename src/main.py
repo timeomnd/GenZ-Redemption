@@ -15,8 +15,6 @@ def main():
     SCORE = 0
     pygame.init()
 
-    pygame.mixer.music.load("../assets/sound/musique_saut.mp3")
-    pygame.mixer.music.set_volume(0.5)
 
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Doodle Shoot Platformer")
