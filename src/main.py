@@ -35,15 +35,18 @@ def init_entities():
     bullets_group = pygame.sprite.Group()
     items_group = pygame.sprite.Group()
 
-    # 1. SOL de départ
-    start_ground = e.Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40)
+    # SOL de départ
+    start_ground = e.StartPlatform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40)
+    # ------------------------
+
     all_sprites.add(start_ground)
     platforms.add(start_ground)
 
-    # 2. Plateformes initiales adaptées à la hauteur
+    # Plateformes initiales
     spacing = SCREEN_HEIGHT // 5
     for i in range(6):
-        p = e.Platform(random.randint(0, SCREEN_WIDTH - 60), i * spacing, 60, 15)
+        # --- MODIFICATION ICI : Utilisation de la nouvelle fonction de génération ---
+        p = e.generate_random_platform(random.randint(0, SCREEN_WIDTH - 60), i * spacing, 60, 15)
         all_sprites.add(p)
         platforms.add(p)
 
@@ -78,14 +81,18 @@ def spawn_puff(platform, items_group, all_sprites, player):
         "black": Item.PuffBlackBerryItem
     }
 
-    map_weapons = [item.weapon_type for item in items_group if hasattr(item, 'weapon_type')]
+    map_weapons = []
+    for item in items_group:
+        if hasattr(item, 'weapon_type'):
+            map_weapons.append(item.weapon_type)
+
     available_classes = []
 
     for weapon_name, puff_class in puff_dict.items():
         if weapon_name not in map_weapons and not player.inventory.has_weapon(weapon_name):
             available_classes.append(puff_class)
 
-    if available_classes:
+    if available_classes and platform.type != "fake" and platform.type != "mouvante":
         chosen_class = random.choice(available_classes)
         new_item = chosen_class(platform.rect.centerx, platform.rect.top - 20)
         items_group.add(new_item)
@@ -93,6 +100,7 @@ def spawn_puff(platform, items_group, all_sprites, player):
 
 
 def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, items_group, platforms, all_sprites):
+    # 1. Gestion du score et du défilement
     if player.rect.top <= SCREEN_HEIGHT / 3:
         scroll_dist = abs(player.vel_y)
         total_scroll += scroll_dist
@@ -111,22 +119,44 @@ def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, i
             if item.rect.y > SCREEN_HEIGHT:
                 item.kill()
 
+        # On fait descendre les plateformes existantes et on supprime celles du bas
         for plat in platforms:
             plat.rect.y += scroll_dist
             if plat.rect.top >= SCREEN_HEIGHT:
                 plat.kill()
-                highest_plat_y = min([p.rect.y for p in platforms])
 
-                MIN_GAP = 60
-                MAX_GAP = 130
-                new_y = highest_plat_y - random.randint(MIN_GAP, MAX_GAP)
-                new_p = e.Platform(random.randint(0, SCREEN_WIDTH - 60), new_y, 60, 15)
+    # --- 2. LOGIQUE DE SPAWN ---
+    # On génère des plateformes TANT QUE la plus haute est visible à l'écran
+    while True:
+        highest_plat_y = SCREEN_HEIGHT
+        highest_plat = None
 
-                all_sprites.add(new_p)
-                platforms.add(new_p)
+        # On cherche la plateforme la plus haute
+        for p in platforms:
+            if p.rect.y < highest_plat_y:
+                highest_plat_y = p.rect.y
+                highest_plat = p
 
-                if random.randint(1, 10) <= 10:
-                    spawn_puff(new_p, items_group, all_sprites, player)
+        # Si la plateforme la plus haute est au-dessus ou au niveau du haut de l'écran (y <= 0),
+        # c'est bon, le niveau est plein, on arrête la boucle !
+        if highest_plat_y <= 0:
+            break
+
+        # Sinon, ça veut dire qu'il manque des plateformes en haut. On en crée une !
+        if hasattr(highest_plat, 'min_gap') and hasattr(highest_plat, 'max_gap'):
+            new_y = highest_plat_y - random.randint(highest_plat.min_gap, highest_plat.max_gap)
+        else:
+            new_y = highest_plat_y - random.randint(60, 130)  # Valeur de secours
+
+        # --- MODIFICATION ICI : Utilisation de la nouvelle fonction de génération ---
+        new_p = e.generate_random_platform(random.randint(0, SCREEN_WIDTH - 60), new_y, 60, 15)
+
+        all_sprites.add(new_p)
+        platforms.add(new_p)
+
+        # Génération des objets
+        if random.randint(1, 10) <= 2:
+            spawn_puff(new_p, items_group, all_sprites, player)
 
     return bg_y, total_scroll, current_score
 
@@ -174,42 +204,38 @@ def main():
     global SCORE
     SCORE = 0
 
-    # 1. Initialisation
+    # Initialisation
     screen, clock, font, bg, bg_y = init_display()
     all_sprites, platforms, bullets_group, items_group, player = init_entities()
 
     running = True
     game_over = False
     total_scroll = 0
-
-    # 2. Boucle Principale
     while running:
         clock.tick(FPS)
 
-        # A. Gestion des événements clavier
+        # Gestion des événements clavier
         running = handle_events(player)
 
-        # B. Mise à jour des positions
+        # Mise à jour des positions
         all_sprites.update()
 
-        # C. Gestion des collisions (Ramasser les objets)
+        # Gestion des collisions (Ramasser les objets)
         handle_collisions(player, items_group)
 
-        # D. Gestion du défilement et génération des objets
+        # Gestion du défilement et génération des objets
         bg_y, total_scroll, SCORE = update_scrolling_and_spawns(
             player, bg, bg_y, total_scroll, SCORE, items_group, platforms, all_sprites
         )
 
-        # E. Condition de défaite
         if player.rect.top > SCREEN_HEIGHT:
             print(f"Game Over! Score final: {SCORE}")
             game_over = True
             running = False
 
-        # F. Dessiner l'écran
         draw_screen(screen, bg, bg_y, all_sprites, SCORE, player, font)
 
-    # 3. Fin du jeu et Sauvegarde
+    # Fin du jeu et Sauvegarde
     save_scores(SCORE)
 
     if game_over:
