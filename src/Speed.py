@@ -1,12 +1,12 @@
 import pygame
 import Puff as p
-import random
-import os
 import inventory
+
 SCREEN_WIDTH = 400  # Format vertical type Doodle Jump
 SCREEN_HEIGHT = 600
 PLAYER_COLOR = (0, 128, 255)
 GRAVITY = 0.5
+
 
 class Speed(pygame.sprite.Sprite):
     def __init__(self, platforms, all_sprites, bullets_group):
@@ -14,10 +14,11 @@ class Speed(pygame.sprite.Sprite):
 
         try:
             self.jump_sound = pygame.mixer.Sound("../assets/sound/jump.mp3")
-            self.jump_sound.set_volume(0.4) # Volume à 40%
+            self.jump_sound.set_volume(0.4)  # Volume à 40%
         except Exception as e:
             print(f"Impossible de charger le son du saut : {e}")
             self.jump_sound = None
+
         # 1. Chargement de la Sprite Sheet unique
         try:
             sprite_sheet = pygame.image.load("../assets/speed/Speed.png").convert_alpha()
@@ -31,8 +32,6 @@ class Speed(pygame.sprite.Sprite):
         self.frames = []
 
         # 2. Découpage (Logique subsurface)
-        # On définit la taille d'une seule case (à ajuster selon ton image)
-        # Si ton image a par exemple 10 colonnes et 3 lignes :
         cols = 4
         rows = 1
         width = sprite_sheet.get_width() // cols
@@ -55,7 +54,6 @@ class Speed(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(200, 500))
 
         # Variables de jeu
-        self.rect = self.image.get_rect()
         # Position de départ au-dessus du sol
         self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100)
         self.vel_y = 0
@@ -72,7 +70,7 @@ class Speed(pygame.sprite.Sprite):
 
     def shoot(self):
         current_weapon = self.inventory.get_current_weapon()
-        if not current_weapon :
+        if not current_weapon:
             return
 
         puff = None
@@ -101,20 +99,35 @@ class Speed(pygame.sprite.Sprite):
         self.vel_y += GRAVITY
         self.rect.y += self.vel_y
 
-        # Collision avec les plateformes (uniquement en tombant)
+        # 4. Collision avec les plateformes (uniquement en tombant)
         if self.vel_y > 0:
             hits = pygame.sprite.spritecollide(self, self.platforms, False)
             if hits:
-                # On vérifie si les pieds du joueur sont bien au-dessus du haut de la plateforme
                 lowest = hits[0]
+
+                # On vérifie si les pieds du joueur sont bien au-dessus du haut de la plateforme
                 if self.rect.bottom < lowest.rect.bottom + 10:
                     self.rect.bottom = lowest.rect.top
-                    self.vel_y = -15  # Rebond automatique
+                    self.vel_y = -15  # Rebond automatique par défaut
 
                     if self.jump_sound:
                         self.jump_sound.play()
 
+                    # GESTION DES TYPES
+                    # On utilise hasattr par sécurité au cas où une plateforme (comme le sol de départ) n'aurait pas de type défini
+                    if hasattr(lowest, 'type'):
+                        if lowest.type == "fragile":
+                            # La plateforme rouge est détruite après le rebond
+                            lowest.kill()
+
+                        if lowest.type == "fake":
+                            self.vel_y = 0
+                            lowest.kill()
+
+                        if lowest.type == "bouncing":
+                            self.vel_y = -20
+
+
         # Wrap-around (téléportation gauche/droite)
         if self.rect.left > SCREEN_WIDTH: self.rect.right = 0
         if self.rect.right < 0: self.rect.left = SCREEN_WIDTH
-
