@@ -1,5 +1,12 @@
 import pygame
 
+pygame.mixer.init()
+SOUNDS = {
+    "smoke": pygame.mixer.Sound("../assets/sounds/smoke_sfx.wav"),
+    "snow": pygame.mixer.Sound("../assets/sounds/snow_sfx.wav"),
+    "fire": pygame.mixer.Sound("../assets/sounds/fire_sfx.wav"),
+    "explosion": pygame.mixer.Sound("../assets/sounds/explosion_sfx.wav")
+}
 class Puff(pygame.sprite.Sprite):
     def __init__(self, x, y, sprite_path, damage, cols, rows, scalex, scaley,
                  speed=-12, friction=0.90, rotation=0, is_tick_damage=True, duration=1000):
@@ -11,6 +18,7 @@ class Puff(pygame.sprite.Sprite):
         self.setup_animation(0.08)
 
         self.rect = self.image.get_rect(centerx=x, bottom=y)
+
 
     def setup_images(self, path, cols, rows, sx, sy, rotation):
         self.frames = []
@@ -59,14 +67,21 @@ class Puff(pygame.sprite.Sprite):
 #blue Puff
 class PuffRaspberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/snowball.png",damage=10, cols=3, rows=2, scalex=90, scaley=90, friction=0.98, rotation=-90)
+        super().__init__(x, y, "../assets/weapon_effects/snowball.png", damage=10, cols=3, rows=2, scalex=90, scaley=90, friction=0.98, rotation=-90)
+        self.attack_sound = SOUNDS["snow"]
+        self.attack_sound.play()
 class PuffStrawberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/fireball.png",damage=15, cols=2, rows=2, scalex=90, scaley=90,friction=1.0, rotation=-90, is_tick_damage=False)
+        super().__init__(x, y, "../assets/weapon_effects/fireball.png", damage=15, cols=2, rows=2, scalex=90, scaley=90, friction=1.0, rotation=-90, is_tick_damage=False)
+        self.attack_sound = SOUNDS["fire"]
+        self.attack_sound.play()
 class PuffBlackberry(Puff):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/explosion.png",damage=20, cols=6, rows=1, scalex=90, scaley=90,is_tick_damage=False)
+        super().__init__(x, y, "../assets/weapon_effects/explosion.png", damage=20, cols=6, rows=1, scalex=90, scaley=90, is_tick_damage=False)
+        self.attack_sound = SOUNDS["explosion"]
+        self.attack_sound.play()
 class PuffBanana(Puff):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/smoke.png",damage=10, cols=7, rows=1, scalex=125, scaley=150)
-
+        super().__init__(x, y, "../assets/weapon_effects/smoke.png", damage=10, cols=7, rows=1, scalex=125, scaley=150)
+        self.attack_sound = SOUNDS["smoke"]
+        self.attack_sound.play()

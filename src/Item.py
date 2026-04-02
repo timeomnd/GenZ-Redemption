@@ -2,10 +2,7 @@ from sys import implementation
 
 import pygame
 import math
-import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
 class Item(pygame.sprite.Sprite):
     def __init__(self, x, y, sprite_path, scalex, scaley, weapon_type):
         super().__init__()
@@ -33,15 +30,15 @@ class Item(pygame.sprite.Sprite):
 
 class PuffStrawberryItem(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "puffRed.png"), scalex=40, scaley=40, weapon_type = "red")
+        super().__init__(x, y, "../assets/puffs/puffRed.png", scalex=40, scaley=40, weapon_type = "red")
 
 class PuffBlueberryItem(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "puffBlue.png"), scalex=40, scaley=40, weapon_type = "blue")
+        super().__init__(x, y, "../assets/puffs/puffBlue.png", scalex=40, scaley=40, weapon_type = "blue")
 class PuffBlackBerryItem(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "puffBlack.png"), scalex=40, scaley=40, weapon_type = "black")
+        super().__init__(x, y, "../assets/puffs/puffBlack.png", scalex=40, scaley=40, weapon_type = "black")
         
 class PuffBananaItem(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "puffYellow.png"), scalex=40, scaley=40, weapon_type = "yellow")
+        super().__init__(x, y, "../assets/puffs/puffYellow.png", scalex=40, scaley=40, weapon_type = "yellow")

@@ -34,7 +34,7 @@ last_score = read_score("../src/Score/last_score.txt")
 best_score = read_score("../src/Score/best_score.txt")
 
 # Fond d'écran
-bg_menu = pygame.image.load("../assets/fond.png").convert()
+bg_menu = pygame.image.load("../assets/arriere_plans/fond.png").convert()
 bg_menu = pygame.transform.scale(bg_menu, (WIDTH, HEIGHT))
 
 
@@ -43,7 +43,7 @@ play_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 40, 200, 80)
 
 # Musique
 try:
-    pygame.mixer.music.load("../assets/sound/musique_fond.mp3")
+    pygame.mixer.music.load("../assets/sounds/musique_fond.mp3")
     pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play(-1)
 except:
