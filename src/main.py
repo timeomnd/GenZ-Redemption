@@ -68,8 +68,25 @@ def handle_collisions(player, items_group):
     for item in hits_items:
         if hasattr(item, 'weapon_type'):
             player.inventory.add_weapon(item.weapon_type)
+        if hasattr(item, 'type') and item.type == "consumable":
+            item.play_abilitie(player)
+def spawn_consumable(platform, items_group, all_sprites):
+    consumable_classes = [
+        Item.Burger,
+        Item.TastyCrousty,
+        Item.Tacos,
+        Item.TacosGratine,
+        Item.Poppers,
+        Item.Monster,
+        Item.Creatine,
+        Item.Redbull,
+        Item.Frozen
+    ]
+    chosen_class = random.choice(consumable_classes)
+    new_item = chosen_class(platform.rect.centerx, platform.rect.top -20)
 
-
+    items_group.add(new_item)
+    all_sprites.add(new_item)
 def spawn_puff(platform, items_group, all_sprites, player):
     puff_dict = {
         "red": Item.PuffStrawberryItem,
@@ -78,16 +95,27 @@ def spawn_puff(platform, items_group, all_sprites, player):
         "black": Item.PuffBlackBerryItem
     }
 
-    map_weapons = [item.weapon_type for item in items_group if hasattr(item, 'weapon_type')]
+    map_weapons = []
+
+    for item in items_group:
+        if hasattr(item, 'weapon_type'):
+            map_weapons.append(item.weapon_type)
+
     available_classes = []
 
     for weapon_name, puff_class in puff_dict.items():
-        if weapon_name not in map_weapons and not player.inventory.has_weapon(weapon_name):
+
+        isOnMap = weapon_name in map_weapons
+        isInInventory = player.inventory.has_weapon(weapon_name)
+
+        if not isOnMap and not isInInventory:
             available_classes.append(puff_class)
 
-    if available_classes:
+    if len(available_classes) > 0:
         chosen_class = random.choice(available_classes)
+
         new_item = chosen_class(platform.rect.centerx, platform.rect.top - 20)
+
         items_group.add(new_item)
         all_sprites.add(new_item)
 
@@ -115,8 +143,10 @@ def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, i
             plat.rect.y += scroll_dist
             if plat.rect.top >= SCREEN_HEIGHT:
                 plat.kill()
-                highest_plat_y = min([p.rect.y for p in platforms])
-
+                highest_plat_y = SCREEN_HEIGHT
+                for p in platforms:
+                    if p.rect.y < highest_plat_y:
+                        highest_plat_y = p.rect.y
                 MIN_GAP = 60
                 MAX_GAP = 130
                 new_y = highest_plat_y - random.randint(MIN_GAP, MAX_GAP)
@@ -125,8 +155,11 @@ def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, i
                 all_sprites.add(new_p)
                 platforms.add(new_p)
 
-                if random.randint(1, 10) <= 10:
+                if random.randint(1, 200) <= 10:
                     spawn_puff(new_p, items_group, all_sprites, player)
+
+                if(random.randint(1,200)) <= 100:
+                    spawn_consumable(new_p,items_group, all_sprites)
 
     return bg_y, total_scroll, current_score
 
@@ -145,7 +178,7 @@ def draw_screen(screen, bg, bg_y, all_sprites, current_score, player, font):
 
     # Affichage de l'inventaire
     player.inventory.draw_ui(screen, SCREEN_HEIGHT)
-
+    player.draw_health_bar(screen)
     pygame.display.flip()
 
 def save_scores(current_score):
@@ -185,6 +218,10 @@ def main():
     # 2. Boucle Principale
     while running:
         clock.tick(FPS)
+        if player.Hp <= 0 :
+            running = False
+            game_over = True
+            return
 
         # A. Gestion des événements clavier
         running = handle_events(player)

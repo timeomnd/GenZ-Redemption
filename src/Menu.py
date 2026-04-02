@@ -5,8 +5,7 @@ import sys
 # --- CONFIGURATION ---
 pygame.init()
 
-# 1. Résolution dynamique pour le menu
-monitor_info = pygame.display.Info()
+# 1. Résolution pour le menu
 WIDTH = 400
 HEIGHT = 600
 
