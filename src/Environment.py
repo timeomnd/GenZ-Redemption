@@ -92,7 +92,7 @@ def generate_random_platform(x, y, w, h):
 def background():
     # Chargement du fond
     try:
-        bg_image = pygame.image.load("../assets/gratte-ciel.png").convert_alpha()
+        bg_image = pygame.image.load("../assets/arriere_plans/gratte-ciel.png").convert_alpha()
         original_width, original_height = bg_image.get_size()
         ratio = SCREEN_WIDTH / original_width
         new_height = int(original_height * ratio)

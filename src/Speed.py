@@ -13,7 +13,7 @@ class Speed(pygame.sprite.Sprite):
         super().__init__()
 
         try:
-            self.jump_sound = pygame.mixer.Sound("../assets/sound/jump.mp3")
+            self.jump_sound = pygame.mixer.Sound("../assets/sounds/jump.mp3")
             self.jump_sound.set_volume(0.4)  # Volume à 40%
         except Exception as e:
             print(f"Impossible de charger le son du saut : {e}")
