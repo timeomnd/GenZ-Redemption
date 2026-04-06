@@ -81,7 +81,6 @@ def spawn_consumable(platform, items_group, all_sprites):
         Item.TacosGratine,
         Item.Poppers,
         Item.Monster,
-        Item.Creatine,
         Item.Redbull,
         Item.Frozen
     ]
