@@ -15,14 +15,14 @@ class Inventory:
 
         try:
 
-            self.collect_sound = pygame.mixer.Sound("../assets/sound/item_collect_sound_effect.mp3")
+            self.collect_sound = pygame.mixer.Sound("../assets/sounds/item_collect_sound_effect.mp3")
             self.collect_sound.set_volume(0.4)
         except:
             self.collect_sound = None
 
         for weapon_name, filename in icon_files.items():
             try:
-                path = ("../assets/" + filename)
+                path = ("../assets/puffs/" + filename)
                 img = pygame.image.load(path).convert_alpha()
                 img = pygame.transform.scale(img, (30, 30))
                 self.icons[weapon_name] = img

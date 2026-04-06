@@ -23,11 +23,13 @@ class Item(pygame.sprite.Sprite):
         self.base_y = float(self.rect.y)
         self.levitate_speed = 0.005
         self.levitate_range = 10
+        self.weapon_type = weapon_type
         self.time_offset = pygame.time.get_ticks()
 
     def update(self):
         current_time = pygame.time.get_ticks()
         offset_y = math.sin((current_time - self.time_offset) * self.levitate_speed) * self.levitate_range
+
         self.rect.y = int(self.base_y + offset_y)
 
 
