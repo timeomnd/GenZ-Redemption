@@ -11,19 +11,14 @@ ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
 class Item(pygame.sprite.Sprite):
     def __init__(self, x, y, sprite_path, scalex, scaley):
         super().__init__()
-        try:
-            image = pygame.image.load(sprite_path)
-            self.image = pygame.transform.scale(image, (scalex, scaley))
-        except:
-            self.image = pygame.Surface((scalex, scaley))
-            self.image.fill((0, 255, 0))
+        image = pygame.image.load(sprite_path)
+        self.image = pygame.transform.scale(image, (scalex, scaley))
 
         self.rect = self.image.get_rect(centerx=x, bottom=y)
 
         self.base_y = float(self.rect.y)
         self.levitate_speed = 0.005
         self.levitate_range = 10
-        self.weapon_type = weapon_type
         self.time_offset = pygame.time.get_ticks()
 
     def update(self):
@@ -35,31 +30,31 @@ class Item(pygame.sprite.Sprite):
 
 class PuffStrawberryItem(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "puffRed.png"), scalex=40, scaley=40)
+        super().__init__(x, y, "../assets/puffs/puffRed.png", scalex=40, scaley=40)
         self.weapon_type = "red"
 
 
 class PuffBlueberryItem(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "puffBlue.png"), scalex=40, scaley=40)
+        super().__init__(x, y, "../assets/puffs/puffBlue.png", scalex=40, scaley=40)
         self.weapon_type = "blue"
 
 
 class PuffBlackBerryItem(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "puffBlack.png"), scalex=40, scaley=40)
+        super().__init__(x, y, "../assets/puffs/puffBlack.png", scalex=40, scaley=40)
         self.weapon_type = "black"
 
 
 class PuffBananaItem(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, os.path.join(ASSETS_PATH, "puffYellow.png"), scalex=40, scaley=40)
+        super().__init__(x, y, "../assets/puffs/puffYellow.png", scalex=40, scaley=40)
         self.weapon_type = "yellow"
 
 
 class Burger(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/burger.png", scalex=40, scaley=40)
+        super().__init__(x, y, "../assets/items/burger.png", scalex=40, scaley=40)
         self.type = "consumable"
 
     def play_abilitie(self, player):
@@ -68,7 +63,7 @@ class Burger(Item):
 
 class TastyCrousty(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/tasty_crousty.png", scalex=120, scaley=120)
+        super().__init__(x, y, "../assets/items/tasty_crousty.png", scalex=120, scaley=120)
         self.type = "consumable"
 
     def play_abilitie(self, player):
@@ -77,7 +72,7 @@ class TastyCrousty(Item):
 
 class Tacos(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/tacos.png", scalex=50, scaley=50)
+        super().__init__(x, y, "../assets/items/tacos.png", scalex=50, scaley=50)
         self.type = "consumable"
 
     def play_abilitie(self, player):
@@ -86,7 +81,7 @@ class Tacos(Item):
 
 class TacosGratine(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/tacos_gratine.png", scalex=50, scaley=50)
+        super().__init__(x, y, "../assets/items/tacos_gratine.png", scalex=50, scaley=50)
         self.type = "consumable"
 
     def play_abilitie(self, player):
@@ -95,7 +90,7 @@ class TacosGratine(Item):
 
 class Poppers(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/poppers.png", scalex=120, scaley=60)
+        super().__init__(x, y, "../assets/items/poppers.png", scalex=120, scaley=60)
         self.type = "consumable"
 
     def play_abilitie(self, player):
@@ -103,7 +98,7 @@ class Poppers(Item):
 
 class Monster(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/monster.png", scalex=40, scaley=40)
+        super().__init__(x, y, "../assets/items/monster.png", scalex=40, scaley=40)
         self.type = "consumable"
 
     def play_abilitie(self, player):
@@ -111,7 +106,7 @@ class Monster(Item):
 
 class Redbull(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/redbull.png", scalex=40, scaley=40)
+        super().__init__(x, y, "../assets/items/redbull.png", scalex=40, scaley=40)
         self.type = "consumable"
 
     def play_abilitie(self, player):
@@ -119,7 +114,7 @@ class Redbull(Item):
 
 class Frozen(Item):
     def __init__(self, x, y):
-        super().__init__(x, y, "../assets/frozen.png", scalex=50, scaley=50)
+        super().__init__(x, y, "../assets/items/frozen.png", scalex=50, scaley=50)
         self.type = "consumable"
 
     def play_abilitie(self, player):
