@@ -69,17 +69,21 @@ class PuffRaspberry(Puff):
     def __init__(self, x, y):
         super().__init__(x, y, "../assets/weapon_effects/snowball.png", damage=10, cols=3, rows=2, scalex=90, scaley=90, friction=0.98, rotation=-90)
         self.attack_sound = SOUNDS["snow"]
+        self.attack_sound.set_volume(0.1)
         self.attack_sound.play()
 class PuffStrawberry(Puff):
     def __init__(self, x, y):
         super().__init__(x, y, "../assets/weapon_effects/fireball.png", damage=15, cols=2, rows=2, scalex=90, scaley=90, friction=1.0, rotation=-90, is_tick_damage=False)
         self.attack_sound = SOUNDS["fire"]
+        self.attack_sound.set_volume(0.1)
         self.attack_sound.play()
 class PuffBlackberry(Puff):
     def __init__(self, x, y):
         super().__init__(x, y, "../assets/weapon_effects/explosion.png", damage=20, cols=6, rows=1, scalex=90, scaley=90, is_tick_damage=False)
         self.attack_sound = SOUNDS["explosion"]
+        self.attack_sound.set_volume(0.1)
         self.attack_sound.play()
+
 class PuffBanana(Puff):
     def __init__(self, x, y):
         super().__init__(x, y, "../assets/weapon_effects/smoke.png", damage=10, cols=7, rows=1, scalex=125, scaley=150)
