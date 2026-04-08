@@ -21,12 +21,19 @@ def init_display():
     font = pygame.font.SysFont("Arial", 24, bold=True)
 
     bg = e.background()
-    if bg:
-        bg_y = SCREEN_HEIGHT - bg.get_height()
-    else:
-        bg_y = 0
+    bg_y = SCREEN_HEIGHT - bg.get_height() if bg else 0
 
     return screen, clock, font, bg, bg_y
+
+def load_assets():
+    sounds = {}
+    try:
+        sounds["collect"] = pygame.mixer.Sound("../assets/sounds/item_collect_sound_effect.mp3")
+        sounds["collect"].set_volume(0.4)
+    except Exception as err:
+        print(f"Erreur chargement son collect : {err}")
+        sounds["collect"] = None
+    return sounds
 
 
 def init_entities():
@@ -35,17 +42,12 @@ def init_entities():
     bullets_group = pygame.sprite.Group()
     items_group = pygame.sprite.Group()
 
-    # SOL de départ
     start_ground = e.StartPlatform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40)
-    # ------------------------
-
     all_sprites.add(start_ground)
     platforms.add(start_ground)
 
-    # Plateformes initiales
     spacing = SCREEN_HEIGHT // 5
     for i in range(6):
-        # --- MODIFICATION ICI : Utilisation de la nouvelle fonction de génération ---
         p = e.generate_random_platform(random.randint(0, SCREEN_WIDTH - 60), i * spacing, 60, 15)
         all_sprites.add(p)
         platforms.add(p)
@@ -58,21 +60,25 @@ def init_entities():
 def handle_events(player):
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            return False # Retourne False pour arrêter le jeu (running = False)
+            return False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 player.shoot()
             if event.key == pygame.K_TAB:
                 player.inventory.cycle_weapon()
-    return True # Le jeu continue
+    return True
 
-def handle_collisions(player, items_group):
+def handle_collisions(player, items_group, sounds):
     hits_items = pygame.sprite.spritecollide(player, items_group, True)
     for item in hits_items:
+        if sounds["collect"]:
+            sounds["collect"].play()
+
         if hasattr(item, 'weapon_type'):
             player.inventory.add_weapon(item.weapon_type)
         if hasattr(item, 'type') and item.type == "consumable":
             item.play_abilitie(player)
+
 def spawn_consumable(platform, items_group, all_sprites):
     consumable_classes = [
         Item.Burger,
@@ -97,33 +103,22 @@ def spawn_puff(platform, items_group, all_sprites, player):
         "black": Item.PuffBlackBerryItem
     }
 
-    map_weapons = []
-
-    for item in items_group:
-        if hasattr(item, 'weapon_type'):
-            map_weapons.append(item.weapon_type)
-
+    map_weapons = [item.weapon_type for item in items_group if hasattr(item, 'weapon_type')]
     available_classes = []
 
     for weapon_name, puff_class in puff_dict.items():
-
-        isOnMap = weapon_name in map_weapons
-        isInInventory = player.inventory.has_weapon(weapon_name)
-
-        if not isOnMap and not isInInventory:
+        if weapon_name not in map_weapons and not player.inventory.has_weapon(weapon_name):
             available_classes.append(puff_class)
 
-    if len(available_classes) > 0 and platform.type != "fake" and platform.type != "mouvante":
+    if available_classes:
         chosen_class = random.choice(available_classes)
-
-        new_item = chosen_class(platform.rect.centerx, platform.rect.top - 20)
-
+        new_item = chosen_class(platform.rect.centerx, platform.rect.top - 25)
         items_group.add(new_item)
         all_sprites.add(new_item)
 
 
 def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, items_group, platforms, all_sprites):
-    # 1. Gestion du score et du défilement
+    # Gestion du score et du défilement vertical
     if player.rect.top <= SCREEN_HEIGHT / 3:
         scroll_dist = abs(player.vel_y)
         total_scroll += scroll_dist
@@ -142,50 +137,37 @@ def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, i
             if item.rect.y > SCREEN_HEIGHT:
                 item.kill()
 
-        # On fait descendre les plateformes existantes et on supprime celles du bas
         for plat in platforms:
             plat.rect.y += scroll_dist
             if plat.rect.top >= SCREEN_HEIGHT:
                 plat.kill()
 
-    # --- 2. LOGIQUE DE SPAWN ---
-    # On génère des plateformes TANT QUE la plus haute est visible à l'écran
+    # Génération des nouvelles plateformes et items
     while True:
         highest_plat_y = SCREEN_HEIGHT
-        highest_plat = None
-
-        # On cherche la plateforme la plus haute
         for p in platforms:
             if p.rect.y < highest_plat_y:
                 highest_plat_y = p.rect.y
-                highest_plat = p
 
-        # Si la plateforme la plus haute est au-dessus ou au niveau du haut de l'écran (y <= 0),
-        # c'est bon, le niveau est plein, on arrête la boucle !
         if highest_plat_y <= 0:
             break
 
-        # Sinon, ça veut dire qu'il manque des plateformes en haut. On en crée une !
-        if hasattr(highest_plat, 'min_gap') and hasattr(highest_plat, 'max_gap'):
-            new_y = highest_plat_y - random.randint(highest_plat.min_gap, highest_plat.max_gap)
-        else:
-            new_y = highest_plat_y - random.randint(60, 130)  # Valeur de secours
-
-        # --- MODIFICATION ICI : Utilisation de la nouvelle fonction de génération ---
+        new_y = highest_plat_y - random.randint(60, 130)
         new_p = e.generate_random_platform(random.randint(0, SCREEN_WIDTH - 60), new_y, 60, 15)
 
         all_sprites.add(new_p)
         platforms.add(new_p)
 
-        if random.randint(1, 200) <= 10:
-                    spawn_puff(new_p, items_group, all_sprites, player)
-
-        if(random.randint(1,200)) <= 100:
-                    spawn_consumable(new_p,items_group, all_sprites)
+        # Spawn limité aux plateformes stables
+        if new_p.type in ["normal", "bouncing"]:
+            if random.randint(1, 100) <= 5: # 5% de chance pour les armes
+                spawn_puff(new_p, items_group, all_sprites, player)
+            elif random.randint(1, 100) <= 5: # 5% de chance pour les objets
+                spawn_consumable(new_p, items_group, all_sprites)
 
     return bg_y, total_scroll, current_score
 
-def draw_screen(screen, bg, bg_y, all_sprites, current_score, player, font):
+def draw_screen(screen, bg, bg_y, all_sprites, current_score, player, font, damage_timer):
     if bg:
         screen.fill((135, 206, 235))
         screen.blit(bg, (0, bg_y))
@@ -194,13 +176,18 @@ def draw_screen(screen, bg, bg_y, all_sprites, current_score, player, font):
 
     all_sprites.draw(screen)
 
-    # Affichage du score
+    if damage_timer > 0:
+        e.draw_damage_flash(screen)
+
+    if hasattr(player, 'frozen_active') and player.frozen_active:
+        e.draw_frozen_filter(screen)
+
     score_surf = font.render(f"Score : {current_score}", True, (255, 255, 255))
     screen.blit(score_surf, (10, 10))
 
-    # Affichage de l'inventaire
     player.inventory.draw_ui(screen, SCREEN_HEIGHT)
     player.draw_health_bar(screen)
+
     pygame.display.flip()
 
 def save_scores(current_score):
@@ -229,51 +216,51 @@ def main():
     global SCORE
     SCORE = 0
 
-    # Initialisation
     screen, clock, font, bg, bg_y = init_display()
+    sounds = load_assets() # On charge les sons ici
     all_sprites, platforms, bullets_group, items_group, player = init_entities()
 
     running = True
     game_over = False
     total_scroll = 0
+    damage_timer = 0
+    last_hp = player.Hp
 
-    # Boucle Principale
     while running:
         clock.tick(FPS)
-        if player.Hp <= 0 :
-            running = False
+
+        if player.Hp <= 0:
             game_over = True
-            return
+            running = False
+            continue
 
-        # Gestion des événements clavier
         running = handle_events(player)
-
-        # Mise à jour des positions
         all_sprites.update()
 
-        # Gestion des collisions (Ramasser les objets)
-        handle_collisions(player, items_group)
+        # Flash rouge si dégâts
+        if player.Hp < last_hp:
+            damage_timer = 10
+        last_hp = player.Hp
 
-        # Gestion du défilement et génération des objets
+        # Collisions avec passage des sons
+        handle_collisions(player, items_group, sounds)
+
+        # Scrolling et spawn
+        from __main__ import update_scrolling_and_spawns # Sécurité import
         bg_y, total_scroll, SCORE = update_scrolling_and_spawns(
             player, bg, bg_y, total_scroll, SCORE, items_group, platforms, all_sprites
         )
 
-        # E. Condition de défaite
         if player.rect.top > SCREEN_HEIGHT:
-            print(f"Game Over! Score final: {SCORE}")
             game_over = True
             running = False
 
-        # F. Dessiner l'écran
-        draw_screen(screen, bg, bg_y, all_sprites, SCORE, player, font)
+        draw_screen(screen, bg, bg_y, all_sprites, SCORE, player, font, damage_timer)
 
-    # Fin du jeu et Sauvegarde
-    save_scores(SCORE)
+        if damage_timer > 0:
+            damage_timer -= 1
 
-    if game_over:
-        return
-
+    # save_scores(SCORE) # Active cette ligne si tu as la fonction
     pygame.quit()
     sys.exit()
 
