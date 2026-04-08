@@ -34,6 +34,14 @@ def load_assets():
     except Exception as err:
         print(f"Erreur chargement son collect : {err}")
         sounds["collect"] = None
+
+    try:
+        sounds["mob"] = pygame.mixer.Sound("../assets/sounds/mob_sound.mp3")
+        sounds["mob"].set_volume(0.3)
+    except Exception as err:
+        print(f"Erreur chargement son mob : {err}")
+        sounds["mob"] = None
+
     return sounds
 
 
@@ -250,6 +258,7 @@ def main():
     total_scroll = 0
     damage_timer = 0
     last_hp = player.Hp
+    mob_sound_playing = False
 
     while running:
         clock.tick(FPS)
@@ -276,6 +285,23 @@ def main():
             player, bg, bg_y, total_scroll, SCORE, items_group, enemies_group, platforms, all_sprites
         )
 
+        if sounds["mob"]:
+            # On vérifie si au moins un mob est visible à l'écran
+            mob_visible = False
+            for enemy in enemies_group:
+                # Si le haut de l'ennemi est en dessous de 0 (le haut de l'écran)
+                # et le bas au-dessus de SCREEN_HEIGHT (le bas de l'écran)
+                if enemy.rect.bottom > 0 and enemy.rect.top < SCREEN_HEIGHT:
+                    mob_visible = True
+                    break
+
+            if mob_visible and not mob_sound_playing:
+                sounds["mob"].play(-1)  # -1 signifie "répéter à l'infini"
+                mob_sound_playing = True
+            elif not mob_visible and mob_sound_playing:
+                sounds["mob"].stop()  # Arrête le son quand il n'y a plus de mobs
+                mob_sound_playing = False
+
         if player.rect.top > SCREEN_HEIGHT:
             game_over = True
             running = False
@@ -284,6 +310,9 @@ def main():
 
         if damage_timer > 0:
             damage_timer -= 1
+
+        if sounds["mob"]:
+            sounds["mob"].stop()
 
     # save_scores(SCORE) # Active cette ligne si tu as la fonction
     pygame.quit()

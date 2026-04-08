@@ -20,6 +20,13 @@ class Speed(pygame.sprite.Sprite):
             self.jump_sound = None
 
         try:
+            self.damage_sound = pygame.mixer.Sound("../assets/sounds/fah.mp3")
+            self.damage_sound.set_volume(0.5)
+        except Exception as e:
+            print(f"Erreur son dégât : {e}")
+            self.damage_sound = None
+
+        try:
             sprite_sheet = pygame.image.load("../assets/speed/Speed.png").convert_alpha()
         except Exception as e:
             print(f"Erreur sprite : {e}")
@@ -175,7 +182,7 @@ class Speed(pygame.sprite.Sprite):
                     if hasattr(lowest, 'type'):
                         if lowest.type == "fragile":
                             if self.Hp > 10:
-                                self.set_hp(-10)
+                                self.take_damage(10)
                             lowest.kill()
                         elif lowest.type == "fake":
                             self.vel_y = 0
@@ -234,6 +241,8 @@ class Speed(pygame.sprite.Sprite):
 
     def take_damage(self, amount):
         self.set_hp(-amount)
+        if self.damage_sound:
+            self.damage_sound.play()
 
     def apply_slow_effect(self, duration):
         # Active le timer de ralentissement (Mob Bleu)
