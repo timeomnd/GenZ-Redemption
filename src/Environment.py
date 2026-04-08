@@ -100,3 +100,17 @@ def background():
         return bg_image
     except:
         return None
+
+
+def draw_frozen_filter(screen):
+
+    overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+
+    overlay.fill((0, 150, 255, 80))
+
+    screen.blit(overlay, (0, 0))
+
+def draw_damage_flash(screen):
+    flash = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+    flash.fill((255, 0, 0, 100))  # Rouge transparent
+    screen.blit(flash, (0, 0))

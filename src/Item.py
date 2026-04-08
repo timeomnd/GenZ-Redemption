@@ -1,11 +1,5 @@
-from sys import implementation
-
 import pygame
 import math
-import os
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ASSETS_PATH = os.path.join(BASE_DIR, "..", "assets")
 
 
 class Item(pygame.sprite.Sprite):
@@ -67,7 +61,7 @@ class TastyCrousty(Item):
         self.type = "consumable"
 
     def play_abilitie(self, player):
-        pass
+        player.apply_tasty_crousty()
 
 
 class Tacos(Item):
@@ -118,4 +112,4 @@ class Frozen(Item):
         self.type = "consumable"
 
     def play_abilitie(self, player):
-        pass
+        player.apply_frozen()
