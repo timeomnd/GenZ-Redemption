@@ -20,6 +20,13 @@ class Speed(pygame.sprite.Sprite):
             self.jump_sound = None
 
         try:
+            self.damage_sound = pygame.mixer.Sound("../assets/sounds/fah.mp3")
+            self.damage_sound.set_volume(0.5)
+        except Exception as e:
+            print(f"Erreur son dégât : {e}")
+            self.damage_sound = None
+
+        try:
             sprite_sheet = pygame.image.load("../assets/speed/Speed.png").convert_alpha()
         except Exception as e:
             print(f"Erreur sprite : {e}")
@@ -67,9 +74,23 @@ class Speed(pygame.sprite.Sprite):
         self.frozen_active = False
         self.frozen_end_time = 0
 
+        # Gestion des effets des enemy
+        self.slow_timer = 0
+
+        self.poison_timer = 0
+        self.last_poison_tick = 0
+        self.poison_tick_damage = 0
+
     def handle_keys(self):
         keys = pygame.key.get_pressed()
-        current_speed = self.move_speed if not self.frozen_active else self.base_move_speed / 2
+
+        current_speed = self.move_speed
+
+        if self.frozen_active:
+            current_speed = self.base_move_speed / 2
+
+        if self.slow_timer > 0:
+            current_speed = current_speed / 2
 
         if keys[pygame.K_LEFT]:
             self.rect.x -= current_speed
@@ -97,7 +118,7 @@ class Speed(pygame.sprite.Sprite):
     def update(self):
         current_time = pygame.time.get_ticks()
 
-        # Gestion des fins d'effets
+        # --- Gestion des fins d'effets (Items) ---
         if self.monster_active and current_time > self.monster_end_time:
             self.monster_active = False
             self.move_speed = self.base_move_speed
@@ -114,21 +135,41 @@ class Speed(pygame.sprite.Sprite):
             self.frozen_active = False
             self.move_speed = self.base_move_speed
 
+        if self.slow_timer > 0 and current_time > self.slow_timer:
+            self.slow_timer = 0
+
+        if self.poison_timer > 0:
+            if current_time < self.poison_timer:
+                # Fait des dégâts toutes les 1000 ms (1 seconde)
+                if current_time - self.last_poison_tick >= 1000:
+                    self.take_damage(self.poison_tick_damage)
+                    self.last_poison_tick = current_time
+            else:
+                self.poison_timer = 0  # Fin du poison
+
         self.handle_keys()
 
-        # Animation
+        # --- Animation ---
         current_anim_speed = self.animation_speed if not self.frozen_active else self.animation_speed / 2
         self.frame_index += current_anim_speed
         if self.frame_index >= len(self.frames):
             self.frame_index = 0
+
         self.image = self.frames[int(self.frame_index)]
 
-        # Physique
+        if self.poison_timer > 0:
+            # On fait une copie de la frame actuelle
+            tinted_image = self.image.copy()
+            # On applique une teinte verte (RGB) en utilisant le mode produit (MULT)
+            tinted_image.fill((0, 200, 0), special_flags=pygame.BLEND_RGB_MULT)
+            self.image = tinted_image
+
+        # --- Physique ---
         current_gravity = GRAVITY if not self.frozen_active else GRAVITY / 3
         self.vel_y += current_gravity
         self.rect.y += self.vel_y
 
-        # Collisions
+        # --- Collisions avec les plateformes ---
         if self.vel_y > 0:
             hits = pygame.sprite.spritecollide(self, self.platforms, False)
             if hits:
@@ -141,7 +182,7 @@ class Speed(pygame.sprite.Sprite):
                     if hasattr(lowest, 'type'):
                         if lowest.type == "fragile":
                             if self.Hp > 10:
-                                self.set_hp(-10)
+                                self.take_damage(10)
                             lowest.kill()
                         elif lowest.type == "fake":
                             self.vel_y = 0
@@ -149,6 +190,7 @@ class Speed(pygame.sprite.Sprite):
                         elif lowest.type == "bouncing":
                             self.vel_y = -20
 
+        # Sortie d'écran
         if self.rect.left > SCREEN_WIDTH: self.rect.right = 0
         if self.rect.right < 0: self.rect.left = SCREEN_WIDTH
 
@@ -196,3 +238,18 @@ class Speed(pygame.sprite.Sprite):
     def apply_frozen(self):
         self.frozen_active = True
         self.frozen_end_time = pygame.time.get_ticks() + 5000
+
+    def take_damage(self, amount):
+        self.set_hp(-amount)
+        if self.damage_sound:
+            self.damage_sound.play()
+
+    def apply_slow_effect(self, duration):
+        # Active le timer de ralentissement (Mob Bleu)
+        self.slow_timer = pygame.time.get_ticks() + duration
+
+    def apply_poison_effect(self, duration, tick_damage):
+        # Active le timer et les dégâts du poison (Mob Vert)
+        self.poison_timer = pygame.time.get_ticks() + duration
+        self.poison_tick_damage = tick_damage
+        self.last_poison_tick = pygame.time.get_ticks()

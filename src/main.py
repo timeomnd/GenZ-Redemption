@@ -4,6 +4,7 @@ import random
 import Environment as e
 import Speed as s
 import Item
+import Enemy
 
 #const
 SCREEN_WIDTH = 400  # Format vertical type Doodle Jump
@@ -33,6 +34,14 @@ def load_assets():
     except Exception as err:
         print(f"Erreur chargement son collect : {err}")
         sounds["collect"] = None
+
+    try:
+        sounds["mob"] = pygame.mixer.Sound("../assets/sounds/mob_sound.mp3")
+        sounds["mob"].set_volume(0.3)
+    except Exception as err:
+        print(f"Erreur chargement son mob : {err}")
+        sounds["mob"] = None
+
     return sounds
 
 
@@ -41,6 +50,7 @@ def init_entities():
     platforms = pygame.sprite.Group()
     bullets_group = pygame.sprite.Group()
     items_group = pygame.sprite.Group()
+    enemies_group = pygame.sprite.Group()
 
     start_ground = e.StartPlatform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40)
     all_sprites.add(start_ground)
@@ -55,7 +65,7 @@ def init_entities():
     player = s.Speed(platforms, all_sprites, bullets_group)
     all_sprites.add(player)
 
-    return all_sprites, platforms, bullets_group, items_group, player
+    return all_sprites, platforms, bullets_group, items_group, enemies_group, player
 
 def handle_events(player):
     for event in pygame.event.get():
@@ -68,7 +78,7 @@ def handle_events(player):
                 player.inventory.cycle_weapon()
     return True
 
-def handle_collisions(player, items_group, sounds):
+def handle_collisions(player, items_group, enemies_group, sounds):
     hits_items = pygame.sprite.spritecollide(player, items_group, True)
     for item in hits_items:
         if sounds["collect"]:
@@ -79,6 +89,10 @@ def handle_collisions(player, items_group, sounds):
         if hasattr(item, 'type') and item.type == "consumable":
             item.play_abilitie(player)
 
+    hits_enemies = pygame.sprite.spritecollide(player, enemies_group, False)
+    for enemy in hits_enemies:
+        enemy.apply_effect(player)  # Applique le poison, ralenti ou dégât
+        enemy.kill()  # L'ennemi disparaît après avoir touché le joueur
 def spawn_consumable(platform, items_group, all_sprites):
     consumable_classes = [
         Item.Burger,
@@ -117,7 +131,18 @@ def spawn_puff(platform, items_group, all_sprites, player):
         all_sprites.add(new_item)
 
 
-def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, items_group, platforms, all_sprites):
+def spawn_enemy(platform, enemies_group, all_sprites):
+    # Liste des classes d'ennemis possibles
+    enemy_classes = [Enemy.PinkEnemy, Enemy.BlueEnemy, Enemy.GreenEnemy]
+    chosen_class = random.choice(enemy_classes)
+
+    # On place l'ennemi juste au-dessus de la plateforme
+    new_enemy = chosen_class(platform.rect.centerx, platform.rect.top)
+
+    enemies_group.add(new_enemy)
+    all_sprites.add(new_enemy)
+
+def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, items_group, enemies_group, platforms, all_sprites):
     # Gestion du score et du défilement vertical
     if player.rect.top <= SCREEN_HEIGHT / 3:
         scroll_dist = abs(player.vel_y)
@@ -141,6 +166,12 @@ def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, i
             plat.rect.y += scroll_dist
             if plat.rect.top >= SCREEN_HEIGHT:
                 plat.kill()
+
+        for enemy in enemies_group:
+            enemy.rect.y += scroll_dist
+            enemy.base_y += scroll_dist
+            if enemy.rect.top > SCREEN_HEIGHT:
+                enemy.kill()
 
     # Génération des nouvelles plateformes et items
     while True:
@@ -172,6 +203,8 @@ def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, i
                 spawn_puff(new_p, items_group, all_sprites, player)
             elif random.randint(1, 100) <= 5: # 5% de chance pour les objets
                 spawn_consumable(new_p, items_group, all_sprites)
+            elif random.randint(1, 100) <= 15:
+                spawn_enemy(new_p, enemies_group, all_sprites)
 
     return bg_y, total_scroll, current_score
 
@@ -229,7 +262,7 @@ def main():
 
     screen, clock, font, bg, bg_y = init_display()
     sounds = load_assets() # On charge les sons ici
-    all_sprites, platforms, bullets_group, items_group, player = init_entities()
+    all_sprites, platforms, bullets_group, items_group, enemies_group, player = init_entities()
 
     running = True
     game_over = False
@@ -237,6 +270,7 @@ def main():
     damage_timer = 0
     heal_timer = 0
     last_hp = player.Hp
+    mob_sound_playing = False
 
     while running:
         clock.tick(FPS)
@@ -259,13 +293,30 @@ def main():
         last_hp = player.Hp
 
         # Collisions avec passage des sons
-        handle_collisions(player, items_group, sounds)
+        handle_collisions(player, items_group, enemies_group, sounds)
 
         # Scrolling et spawn
 
         bg_y, total_scroll, SCORE = update_scrolling_and_spawns(
-            player, bg, bg_y, total_scroll, SCORE, items_group, platforms, all_sprites
+            player, bg, bg_y, total_scroll, SCORE, items_group, enemies_group, platforms, all_sprites
         )
+
+        if sounds["mob"]:
+            # On vérifie si au moins un mob est visible à l'écran
+            mob_visible = False
+            for enemy in enemies_group:
+                # Si le haut de l'ennemi est en dessous de 0 (le haut de l'écran)
+                # et le bas au-dessus de SCREEN_HEIGHT (le bas de l'écran)
+                if enemy.rect.bottom > 0 and enemy.rect.top < SCREEN_HEIGHT:
+                    mob_visible = True
+                    break
+
+            if mob_visible and not mob_sound_playing:
+                sounds["mob"].play(-1)  # -1 signifie "répéter à l'infini"
+                mob_sound_playing = True
+            elif not mob_visible and mob_sound_playing:
+                sounds["mob"].stop()  # Arrête le son quand il n'y a plus de mobs
+                mob_sound_playing = False
 
         if player.rect.top > SCREEN_HEIGHT:
             game_over = True
@@ -276,12 +327,14 @@ def main():
         if damage_timer > 0:
             damage_timer -= 1
 
+        if sounds["mob"]:
+            sounds["mob"].stop()
+
         if heal_timer > 0:
             heal_timer -= 1
 
     save_scores(SCORE)
     return
-
 
 if __name__ == '__main__':
     main()
