@@ -6,7 +6,6 @@ import sys
 pygame.init()
 
 # 1. Résolution pour le menu
-monitor_info = pygame.display.Info()
 WIDTH = 400
 HEIGHT = 600
 
@@ -17,10 +16,10 @@ pygame.display.set_caption("Gen Z Redemption - Menu")
 font = pygame.font.SysFont("agencyfb", 50, bold=True)
 font_small = pygame.font.SysFont("agencyfb", 20, bold=True)
 
+
 # --- FONCTIONS ---
 def read_score(filename):
     try:
-
         with open(filename, "r") as f:
             value = f.read().strip()
             return int(value) if value else 0
@@ -28,30 +27,38 @@ def read_score(filename):
         pass
     return 0
 
-# --- CHARGEMENT DES RESSOURCES ---
 
+# --- CHARGEMENT DES RESSOURCES INITIALES ---
 last_score = read_score("../src/Score/last_score.txt")
 best_score = read_score("../src/Score/best_score.txt")
 
 # Fond d'écran
-bg_menu = pygame.image.load("../assets/arriere_plans/fond.png").convert()
-bg_menu = pygame.transform.scale(bg_menu, (WIDTH, HEIGHT))
+try:
+    bg_menu = pygame.image.load("../assets/arriere_plans/fond.png").convert()
+    bg_menu = pygame.transform.scale(bg_menu, (WIDTH, HEIGHT))
+except:
+    bg_menu = None
 
-
-# Bouton Play centré dynamiquement
+# Bouton Play
 play_button = pygame.Rect(WIDTH // 2 - 100, HEIGHT // 2 - 40, 200, 80)
 
+
 # Musique
-try:
-    pygame.mixer.music.load("../assets/sounds/musique_fond.mp3")
-    pygame.mixer.music.set_volume(0.5)
-    pygame.mixer.music.play(-1)
-except:
-    pass
+def play_menu_music():
+    try:
+        pygame.mixer.music.load("../assets/sounds/musique_fond.mp3")
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
+    except:
+        pass
+
+
+play_menu_music()
 
 # --- BOUCLE PRINCIPALE ---
 running = True
 while running:
+    # --- DESSIN ---
     if bg_menu:
         screen.blit(bg_menu, (0, 0))
     else:
@@ -70,9 +77,9 @@ while running:
     # --- BOUTON PLAY ---
     mouse_pos = pygame.mouse.get_pos()
     button_color = (50, 220, 90) if play_button.collidepoint(mouse_pos) else (34, 177, 76)
-    
+
     pygame.draw.rect(screen, button_color, play_button, border_radius=15)
-    
+
     text_surf = font.render("PLAY", True, (255, 255, 255))
     text_rect = text_surf.get_rect(center=play_button.center)
     screen.blit(text_surf, text_rect)
@@ -81,20 +88,25 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1 and play_button.collidepoint(event.pos):
-                # On coupe la musique du menu avant de lancer le jeu
+                # 1. On coupe la musique
                 pygame.mixer.music.stop()
-                
-                # Lancement du jeu (SCORE sera mis à 0 dans main.main)
-                main.main()
-                
-                # Au retour du jeu, on relance la musique et on actualise les scores
 
-                pygame.mixer.music.play(-1)
+                # 2. Lancement du jeu (le code s'arrête ici jusqu'à la fin de la partie)
+                main.main()
+
+                # 3. AU RETOUR DU JEU :
+                # On réinitialise la fenêtre au cas où le jeu l'ait modifiée
+                screen = pygame.display.set_mode((WIDTH, HEIGHT))
+
+                # On recharge les scores mis à jour par la partie
                 last_score = read_score("../src/Score/last_score.txt")
                 best_score = read_score("../src/Score/best_score.txt")
+
+                # On relance la musique du menu
+                play_menu_music()
 
     pygame.display.flip()
 

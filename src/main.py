@@ -189,6 +189,14 @@ def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, i
         all_sprites.add(new_p)
         platforms.add(new_p)
 
+        # --- SÉCURITÉ ANTI-SOFTLOCK ---
+        if new_p.type == "fake":
+            # On génère une position X éloignée de la première
+            alt_x = (new_p.rect.x + 150) % (SCREEN_WIDTH - 60)
+            safe_p = e.NormalPlatform(alt_x, new_y, 60, 15)
+            all_sprites.add(safe_p)
+            platforms.add(safe_p)
+
         # Spawn limité aux plateformes stables
         if new_p.type in ["normal", "bouncing"]:
             if random.randint(1, 100) <= 5: # 5% de chance pour les armes
@@ -200,7 +208,7 @@ def update_scrolling_and_spawns(player, bg, bg_y, total_scroll, current_score, i
 
     return bg_y, total_scroll, current_score
 
-def draw_screen(screen, bg, bg_y, all_sprites, current_score, player, font, damage_timer):
+def draw_screen(screen, bg, bg_y, all_sprites, current_score, player, font, damage_timer, heal_timer):
     if bg:
         screen.fill((135, 206, 235))
         screen.blit(bg, (0, bg_y))
@@ -211,6 +219,9 @@ def draw_screen(screen, bg, bg_y, all_sprites, current_score, player, font, dama
 
     if damage_timer > 0:
         e.draw_damage_flash(screen)
+
+    if heal_timer > 0:
+        e.draw_heal_flash(screen)
 
     if hasattr(player, 'frozen_active') and player.frozen_active:
         e.draw_frozen_filter(screen)
@@ -257,6 +268,7 @@ def main():
     game_over = False
     total_scroll = 0
     damage_timer = 0
+    heal_timer = 0
     last_hp = player.Hp
     mob_sound_playing = False
 
@@ -274,13 +286,17 @@ def main():
         # Flash rouge si dégâts
         if player.Hp < last_hp:
             damage_timer = 10
+
+        if player.Hp > last_hp:
+            heal_timer = 10
+
         last_hp = player.Hp
 
         # Collisions avec passage des sons
         handle_collisions(player, items_group, enemies_group, sounds)
 
         # Scrolling et spawn
-        from __main__ import update_scrolling_and_spawns # Sécurité import
+
         bg_y, total_scroll, SCORE = update_scrolling_and_spawns(
             player, bg, bg_y, total_scroll, SCORE, items_group, enemies_group, platforms, all_sprites
         )
@@ -306,7 +322,7 @@ def main():
             game_over = True
             running = False
 
-        draw_screen(screen, bg, bg_y, all_sprites, SCORE, player, font, damage_timer)
+        draw_screen(screen, bg, bg_y, all_sprites, SCORE, player, font, damage_timer, heal_timer)
 
         if damage_timer > 0:
             damage_timer -= 1
@@ -314,10 +330,11 @@ def main():
         if sounds["mob"]:
             sounds["mob"].stop()
 
-    # save_scores(SCORE) # Active cette ligne si tu as la fonction
-    pygame.quit()
-    sys.exit()
+        if heal_timer > 0:
+            heal_timer -= 1
 
+    save_scores(SCORE)
+    return
 
 if __name__ == '__main__':
     main()
