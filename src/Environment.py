@@ -68,11 +68,11 @@ def generate_random_platform(x, y, w, h):
 
     # On associe directement la classe à sa probabilité
     choix_possibles = [
-        {"classe": NormalPlatform, "proba": 60},
-        {"classe": MovingPlatform, "proba": 20},
-        {"classe": FragilePlatform, "proba": 12},
-        {"classe": BouncingPlatform, "proba": 8},
-        {"classe": FakePlatform, "proba": 8}
+        {"classe": NormalPlatform, "proba": 65},
+        {"classe": MovingPlatform, "proba": 15},
+        {"classe": FragilePlatform, "proba": 10},
+        {"classe": BouncingPlatform, "proba": 7},
+        {"classe": FakePlatform, "proba": 3}
     ]
 
     liste_probas = []
@@ -112,5 +112,10 @@ def draw_frozen_filter(screen):
 
 def draw_damage_flash(screen):
     flash = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-    flash.fill((255, 0, 0, 100))  # Rouge transparent
+    flash.fill((255, 0, 0, 100))
+    screen.blit(flash, (0, 0))
+
+def draw_heal_flash(screen):
+    flash = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+    flash.fill((0, 255, 0, 100))
     screen.blit(flash, (0, 0))
